@@ -1,0 +1,47 @@
+<script>
+  function Hero(name, location, energy) {
+    this._name = name;
+    this._location = location;
+    this._energy = energy;
+    this._allowedPaths = [];
+
+    this.name = function() { return this._name; };
+    this.walkTo = function(destination) {
+      for (var i = 0; i < this._allowedPaths.length; i++) {
+        var exit = this._allowedPaths[i];
+        if (exit[0] === this._location && exit[1] === destination) {
+          this._location = destination;
+          this._energy -= exit[2];
+        } else if (exit[1] === this._location && exit[0] === destination) {
+          this._location = destination;
+          this._energy -= exit[2];
+        }
+      }
+    };
+    this.location = function() { return this._location };
+    this.energy = function() { return this._energy; };
+    this.allowWalking = function(from, to, energy) {
+      this._allowedPaths.push([from, to, energy]);
+    };
+  }
+
+  hero = new Hero("Jane");
+  console.log(hero.name() === "Jane");
+
+  hero = new Hero("Bob");
+  console.log(hero.name() === "Bob");
+
+  hero = new Hero("Jane", "Launch pad");
+  hero.walkTo("Spaceship");
+  console.log(hero.location() === "Launch pad");
+  hero.allowWalking("Launch pad", "Spaceship");
+  hero.walkTo("Spaceship");
+  console.log(hero.location() === "Spaceship");
+  hero.walkTo("Launch pad");
+  console.log(hero.location() === "Launch pad");
+
+  hero = new Hero("Jane", "Launch pad", 100);
+  hero.allowWalking("Launch pad", "Spaceship", 25);
+  hero.walkTo("Spaceship");
+  console.log(hero.energy() === 75);
+</script>
