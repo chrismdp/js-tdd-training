@@ -3,10 +3,6 @@
     this._a = a;
     this._b = b;
     this._energy = energy;
-
-    this.validRoute = function(from, to) {
-      return (this._a === from && this._b === to) || (this._b === from && this._a === to);
-    };
   }
 
   function Map() {
@@ -17,12 +13,15 @@
     this.allowedRoute = function(from, to) {
       for (var i = 0; i < this._allowedPaths.length; i++) {
         var exit = this._allowedPaths[i];
-        if (exit.validRoute(from, to)) {
+        if (this.validRoute(exit, from, to)) {
           return exit;
         }
       }
       return null;
     }
+    this.validRoute = function(exit, from, to) {
+      return (exit._a === from && exit._b === to) || (exit._b === from && exit._a === to);
+    };
   }
 
   function Hero(name, location, energy) {
@@ -64,11 +63,6 @@
   map.allowWalking("Launch pad", "Spaceship", 25);
   new Walker(map).walkTo(hero, "Spaceship");
   console.log(hero.energy() === 75);
-
-  console.log("____ EXIT TESTS");
-  var exit = new Exit("1", "2", 100);
-  console.log(exit.validRoute("2", "1") === true);
-  console.log(exit.validRoute("1", "2") === true);
 
   console.log("____ MAP TESTS");
   var map = new Map();
