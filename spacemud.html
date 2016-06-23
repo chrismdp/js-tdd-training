@@ -35,16 +35,16 @@
     this.energy = function() { return this._energy; };
 
     this.moveTo = function(destination, energy) {
-      hero._location = destination;
-      hero._energy -= energy;
+      return new Hero(this.name(), destination, this.energy() - energy);
     }
   }
 
   function Walker(map) {
     this.walkTo = function(hero, destination) {
       if (exit = map.allowedRoute(hero._location, destination)) {
-        hero.moveTo(destination, exit._energy);
+        return hero.moveTo(destination, exit._energy);
       }
+      return hero;
     }
   }
 
@@ -55,7 +55,7 @@
 
   var map = new Map();
   hero = new Hero("Jane", "Launch pad", 10);
-  hero.moveTo("Spaceship", 5);
+  hero = hero.moveTo("Spaceship", 5);
   console.log(hero.location() === "Spaceship");
   console.log(hero.energy() === 5);
 
@@ -65,7 +65,8 @@
   map.allowWalking("Launch pad", "Spaceship", 25);
 
   var hero = new Hero("Jane", "Launch pad", 100);
-  new Walker(map).walkTo(hero, "Spaceship");
+  console.log(new Walker(map).walkTo(hero, "Unknown") === hero);
+  hero = new Walker(map).walkTo(hero, "Spaceship");
   console.log(hero.energy() === 75);
 
   console.log("____ MAP TESTS");
