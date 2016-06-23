@@ -9,6 +9,22 @@
     };
   }
 
+  function Map() {
+    this._allowedPaths = [];
+    this.allowWalking = function(from, to, energy) {
+      this._allowedPaths.push(new Exit(from, to, energy));
+    };
+    this.allowedRoute = function(from, to) {
+      for (var i = 0; i < this._allowedPaths.length; i++) {
+        var exit = this._allowedPaths[i];
+        if (exit.validRoute(from, to)) {
+          return exit;
+        }
+      }
+      return null;
+    }
+  }
+
   function Hero(name, location, energy) {
     this._name = name;
     this._location = location;
@@ -16,20 +32,17 @@
     this._allowedPaths = [];
 
     this.name = function() { return this._name; };
-    this.walkTo = function(destination) {
-      for (var i = 0; i < this._allowedPaths.length; i++) {
-        var exit = this._allowedPaths[i];
-        if (exit.validRoute(this._location, destination)) {
-          this._location = destination;
-          this._energy -= exit._energy;
-        }
-      }
-    };
     this.location = function() { return this._location };
     this.energy = function() { return this._energy; };
-    this.allowWalking = function(from, to, energy) {
-      this._allowedPaths.push(new Exit(from, to, energy));
-    };
+  }
+
+  function Walker(map) {
+    this.walkTo = function(hero, destination) {
+      if (exit = map.allowedRoute(hero._location, destination)) {
+        hero._location = destination;
+        hero._energy -= exit._energy;
+      }
+    }
   }
 
   console.log("____ HERO TESTS");
@@ -37,21 +50,19 @@
   var hero = new Hero("Jane");
   console.log(hero.name() === "Jane");
 
-  hero = new Hero("Bob");
-  console.log(hero.name() === "Bob");
-
+  var map = new Map();
   hero = new Hero("Jane", "Launch pad");
-  hero.walkTo("Spaceship");
+  new Walker(map).walkTo(hero, "Spaceship");
   console.log(hero.location() === "Launch pad");
-  hero.allowWalking("Launch pad", "Spaceship");
-  hero.walkTo("Spaceship");
+  map.allowWalking("Launch pad", "Spaceship", 25);
+  new Walker(map).walkTo(hero, "Spaceship");
   console.log(hero.location() === "Spaceship");
-  hero.walkTo("Launch pad");
+  new Walker(map).walkTo(hero, "Launch pad");
   console.log(hero.location() === "Launch pad");
 
   hero = new Hero("Jane", "Launch pad", 100);
-  hero.allowWalking("Launch pad", "Spaceship", 25);
-  hero.walkTo("Spaceship");
+  map.allowWalking("Launch pad", "Spaceship", 25);
+  new Walker(map).walkTo(hero, "Spaceship");
   console.log(hero.energy() === 75);
 
   console.log("____ EXIT TESTS");
@@ -59,4 +70,10 @@
   console.log(exit.validRoute("2", "1") === true);
   console.log(exit.validRoute("1", "2") === true);
 
+  console.log("____ MAP TESTS");
+  var map = new Map();
+  map.allowWalking("Launch pad", "Spaceship", 25);
+  console.log(map.allowedRoute("Launch pad", "Spaceship") != null);
+  console.log(map.allowedRoute("Spaceship", "Launch pad") != null);
+  console.log(map.allowedRoute("Spaceship", "Launch pad")._energy === 25);
 </script>
