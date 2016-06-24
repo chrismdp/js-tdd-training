@@ -1,24 +1,84 @@
 <script type='text/javascript' src='http://sukima.github.com/jasmine-all/jasmine-all-min.js'></script>
 <script>
+
+  function Route(source, destination, energy) {
+    var _destination = destination;
+    var _source = source;
+    this.energy = energy;
+    this.canTravel = function(source, destination) {
+      return _source == source && _destination == destination;
+    };
+  }
+
+  function World() {
+    var routes = [];
+    this.addRoute = function(source, destination, energy) {
+      routes.push(new Route(source, destination, energy));
+      routes.push(new Route(destination, source, energy));
+    }
+
+    this.routeFor = function(source, destination) {
+      for (var i = 0; i < routes.length; i++) {
+        var route = routes[i];
+        if (route.canTravel(source, destination)) {
+          return route;
+        }
+      }
+      return null;
+    }
+  }
+
   function Hero(name, location, energy) {
     this._name = name;
     this._location = location;
     this._energy = energy;
-    this._allowedPaths = [];
+
+    var map = new World();
 
     this.name = function() { return this._name; };
     this.walkTo = function(destination) {
-      if (this._allow) {
+      if (route = map.routeFor(this._location, destination)) {
         this._location = destination;
-        this._energy -= 25;
-      }
+        this._energy -= route.energy;
+      };
     };
     this.location = function() { return this._location };
     this.energy = function() { return this._energy; };
     this.allowWalking = function(from, to, energy) {
-      this._allow = true;
+      map.addRoute(from, to, energy);
     };
   }
+
+  describe("A route", function() {
+    it ("has a source and destination", function() {
+      var route = new Route("source", "destination");
+    });
+
+    it ("has a level of energy required", function() {
+      var route = new Route("source", "destination", 25);
+    });
+
+    it ("can report whether travelling is possible", function() {
+      var route = new Route("source", "destination", 25);
+      expect(route.canTravel("source", "destination")).toBe(true);
+      expect(route.canTravel("source", "somewhere else")).toBe(false);
+    });
+  });
+
+  describe("A world", function() {
+    it ("has a list of routes that can be added to", function() {
+      var world = new World();
+      world.addRoute(new Route("source", "destination", 25));
+    });
+
+    it ("returns valid routes when asked", function() {
+      var world = new World();
+      world.addRoute("source", "destination", 25);
+      expect(world.routeFor("source", "destination").energy).toEqual(25);
+      expect(world.routeFor("destination", "source").energy).toEqual(25);
+      expect(world.routeFor("other", "destination")).toBe(null);
+    });
+  });
 
   describe("A hero", function() {
     it ("has a name", function() {
@@ -35,10 +95,9 @@
       expect(hero.location()).toBe("Spaceship");
     });
 
-    // NOTE: This test has a coverage issue: what if
-    // we have a different route in play?
     it ("cannot walk unless a route exists", function() {
       hero = new Hero("Jane", "Launch pad");
+      hero.allowWalking("Launch pad", "Main base");
       hero.walkTo("Spaceship");
       expect(hero.location()).toBe("Launch pad");
     });
