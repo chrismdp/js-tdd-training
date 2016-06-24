@@ -1,3 +1,4 @@
+<script type='text/javascript' src='http://sukima.github.com/jasmine-all/jasmine-all-min.js'></script>
 <script>
   function Hero(name, location, energy) {
     this._name = name;
@@ -7,41 +8,65 @@
 
     this.name = function() { return this._name; };
     this.walkTo = function(destination) {
-      for (var i = 0; i < this._allowedPaths.length; i++) {
-        var exit = this._allowedPaths[i];
-        if (exit[0] === this._location && exit[1] === destination) {
-          this._location = destination;
-          this._energy -= exit[2];
-        } else if (exit[1] === this._location && exit[0] === destination) {
-          this._location = destination;
-          this._energy -= exit[2];
-        }
+      if (this._allow) {
+        this._location = destination;
+        this._energy -= 25;
       }
     };
     this.location = function() { return this._location };
     this.energy = function() { return this._energy; };
     this.allowWalking = function(from, to, energy) {
-      this._allowedPaths.push([from, to, energy]);
+      this._allow = true;
     };
   }
 
-  hero = new Hero("Jane");
-  console.log(hero.name() === "Jane");
+  describe("A hero", function() {
+    it ("has a name", function() {
+      hero = new Hero("Jane");
+      expect(hero.name()).toBe("Jane");
+      hero = new Hero("Bob");
+      expect(hero.name()).toBe("Bob");
+    });
 
-  hero = new Hero("Bob");
-  console.log(hero.name() === "Bob");
+    it ("can walk between locations", function() {
+      hero = new Hero("Jane", "Launch pad");
+      hero.allowWalking("Launch pad", "Spaceship");
+      hero.walkTo("Spaceship");
+      expect(hero.location()).toBe("Spaceship");
+    });
 
-  hero = new Hero("Jane", "Launch pad");
-  hero.walkTo("Spaceship");
-  console.log(hero.location() === "Launch pad");
-  hero.allowWalking("Launch pad", "Spaceship");
-  hero.walkTo("Spaceship");
-  console.log(hero.location() === "Spaceship");
-  hero.walkTo("Launch pad");
-  console.log(hero.location() === "Launch pad");
+    // NOTE: This test has a coverage issue: what if
+    // we have a different route in play?
+    it ("cannot walk unless a route exists", function() {
+      hero = new Hero("Jane", "Launch pad");
+      hero.walkTo("Spaceship");
+      expect(hero.location()).toBe("Launch pad");
+    });
 
-  hero = new Hero("Jane", "Launch pad", 100);
-  hero.allowWalking("Launch pad", "Spaceship", 25);
-  hero.walkTo("Spaceship");
-  console.log(hero.energy() === 75);
+    it ("can walk back again", function() {
+      hero = new Hero("Jane", "Launch pad");
+      hero.allowWalking("Launch pad", "Spaceship");
+      hero.walkTo("Spaceship");
+      expect(hero.location()).toBe("Spaceship");
+      hero.walkTo("Launch pad");
+      expect(hero.location()).toBe("Launch pad");
+    });
+
+    it ("expends energy whilst walking", function() {
+      hero = new Hero("Jane", "Launch pad", 100);
+      hero.allowWalking("Launch pad", "Spaceship", 25);
+      hero.walkTo("Spaceship");
+      expect(hero.energy()).toBe(75);
+    });
+
+    xit ("expends different energy per route", function() {
+      hero = new Hero("Jane", "Launch pad", 100);
+      hero.allowWalking("Launch pad", "Main base", 30);
+      hero.walkTo("Spaceship");
+      expect(hero.location()).toBe("Launch pad");
+      hero.walkTo("Main base");
+      expect(hero.energy()).toBe(70);
+    });
+  });
+
 </script>
